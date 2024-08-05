@@ -2,6 +2,7 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import {
   loginUserService,
   registerUserService,
+  verifyEmailService,
 } from "../services/auth.service";
 
 export const registerUserController = async (
@@ -18,4 +19,12 @@ export const loginUserController = async (
   next: NextFunction
 ) => {
   loginUserService(req, res, next);
+};
+
+export const verifyEmailController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  verifyEmailService(req, res, next);
 };
