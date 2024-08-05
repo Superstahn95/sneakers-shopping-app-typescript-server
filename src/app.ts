@@ -1,6 +1,8 @@
 import express from "express";
 import { config } from "dotenv";
 import authRoute from "./routes/auth.route";
+import connectDb from "./config/db";
+import globalErrorHandlerMiddleware from "./middlewares/errorMiddleware";
 
 config();
 const PORT = process.env.PORT || 8080;
@@ -14,6 +16,9 @@ app.get("/", (req, res, next) => {
 
 app.use("/api/v1/auth/", authRoute);
 
+app.use(globalErrorHandlerMiddleware);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  connectDb();
 });
