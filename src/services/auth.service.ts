@@ -7,6 +7,7 @@ import User from "../models/user.model";
 import sendMail from "../utils/sendMail";
 import asyncErrorHandler from "../utils/asyncErrorHandler";
 import { BadRequestError } from "../errors/BadRequestError";
+import { CustomError } from "../utils/customError";
 
 interface VerifyEmailType {
   email: string;
@@ -24,17 +25,12 @@ export const verifyEmailService = asyncErrorHandler(
     next: NextFunction
   ) => {
     const { email } = req.body;
-    //   const emailExists = await User.findOne({ email });
-    //   if (emailExists) {
-    //     // throw an error
-    //   }
-    //create token
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      const err = new BadRequestError("user with this email already exists");
+      return next(err);
+    }
     const { activationCode } = createActivationDetails({ email });
-    //   return res.status(200).json({
-    //     activationCode,
-    //     email,
-    //   });
-
     //send email
     sendMail({
       destinationEmail: email,
@@ -53,9 +49,24 @@ export const registerUserService = asyncErrorHandler(
     const { firstName, lastName, email, password, mobileNumber } = req.body;
     const emailExists = await User.findOne({ email });
     if (emailExists) {
-      // return an error
+      const err = new BadRequestError("user with this email already exists");
+      return next(err);
     }
-    res.status(201).send("user has been created");
+    //hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
+      mobileNumber,
+      password: hashedPassword,
+    });
+    const user = await newUser.save();
+    res.status(201).json({
+      message: "registration successful",
+      user,
+    });
   }
 );
 
@@ -64,7 +75,23 @@ export const loginUserService = async (
   res: Response,
   next: NextFunction
 ) => {
-  res.status(200).send("user has been logged in");
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    const err = new BadRequestError("Invalid credentials");
+    return next(err);
+  }
+  //compare passwords
+  const isPasswordMatch = await bcrypt.compare(password, user.password);
+  if (!isPasswordMatch) {
+    const err = new BadRequestError("invalid credentials");
+    return next(err);
+  }
+  // send back user to client for now
+  res.status(200).json({
+    message: "log in successful",
+    user,
+  });
 };
 
 const createActivationDetails = (user: VerifyEmailType) => {
