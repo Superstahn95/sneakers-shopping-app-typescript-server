@@ -1,4 +1,4 @@
-import { NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 
 interface AsyncErrorHandler {
   (func: (req: Request, res: Response, next: NextFunction) => Promise<any>): (
@@ -13,3 +13,5 @@ const asyncErrorHandler: AsyncErrorHandler = (func) => {
     func(req, res, next).catch((err) => next(err));
   };
 };
+
+export default asyncErrorHandler;
