@@ -18,6 +18,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "mobile number is required"],
     },
+    userName: {
+      type: String,
+    },
+    gender: {
+      type: String,
+    },
     password: {
       type: String,
       required: [true, "password is required"],

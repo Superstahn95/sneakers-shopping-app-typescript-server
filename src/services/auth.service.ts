@@ -30,7 +30,9 @@ export const verifyEmailService = asyncErrorHandler(
       const err = new BadRequestError("user with this email already exists");
       return next(err);
     }
-    const { activationCode } = createActivationDetails({ email });
+    const { activationCode, activationToken } = createActivationDetails({
+      email,
+    });
     //send email
     sendMail({
       destinationEmail: email,
@@ -40,13 +42,23 @@ export const verifyEmailService = asyncErrorHandler(
     });
     res.status(200).json({
       message: `we have sent a verification code to ${email}`,
+      activationToken,
+      activationCode,
     });
   }
 );
 
 export const registerUserService = asyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { firstName, lastName, email, password, mobileNumber } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      userName,
+      mobileNumber,
+      gender,
+    } = req.body;
     const emailExists = await User.findOne({ email });
     if (emailExists) {
       const err = new BadRequestError("user with this email already exists");
@@ -60,9 +72,17 @@ export const registerUserService = asyncErrorHandler(
       lastName,
       email,
       mobileNumber,
+      userName,
+      gender,
       password: hashedPassword,
     });
     const user = await newUser.save();
+    sendMail({
+      data: { firstName },
+      destinationEmail: email,
+      subject: "Registration successful",
+      template: "registration-mail.ejs",
+    });
     res.status(201).json({
       message: "registration successful",
       user,
@@ -120,6 +140,7 @@ export const verifyCodeService = asyncErrorHandler(
     next: NextFunction
   ) => {
     const { activationCode, activationToken, email } = req.body;
+    console.log("we just hit here...");
     // const decodedToken = jwt.verify(activationToken, process.env.ACTIVATION_SECRET as string)
     const decodedToken = jwt.verify(
       activationToken,
