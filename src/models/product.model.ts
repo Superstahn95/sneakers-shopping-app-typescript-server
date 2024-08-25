@@ -11,7 +11,7 @@ interface IProduct {
   availableSizes: number[];
   isAvailable: boolean;
   images: Image[];
-  price: Number;
+  price: number;
 }
 
 const productSchema = new mongoose.Schema<IProduct>(

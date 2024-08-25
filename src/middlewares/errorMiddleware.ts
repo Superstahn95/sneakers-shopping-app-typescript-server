@@ -10,7 +10,8 @@ const globalErrorHandlerMiddleware: ErrorRequestHandler = (
   if (err instanceof CustomError) {
     return res.status(err.statusCode).json(err.serialize());
   }
-  res.status(500).json({ message: "something went wrong" });
+
+  res.status(500).json({ message: "something went wrong", err });
 };
 
 export default globalErrorHandlerMiddleware;
