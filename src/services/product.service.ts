@@ -30,8 +30,9 @@ export const createProductService = asyncErrorHandler(
     next: NextFunction
   ) => {
     const { availableSizes, description, name, price, isAvailable } = req.body;
+    console.log("we just hit the create product service function");
     // should the name be unique??
-    const existingProducts = await Product.find();
+    const existingProducts = await Product.findOne({ name });
     if (existingProducts) {
       const err = new BadRequestError("Product with name already exist");
       return next(err);
@@ -56,19 +57,18 @@ export const createProductService = asyncErrorHandler(
     const imageUploads = await Promise.all(
       images.map(async (imageFile) => {
         try {
-          const { secure_url, public_id } = await cloudinary.uploader.upload(
-            imageFile.path
-          );
+          const { secure_url: url, public_id } =
+            await cloudinary.uploader.upload(imageFile.path);
           //delete file from server
           //  unlinkSync(imageFile.path)
-          return { secure_url, public_id };
+          console.log("an image has been sent to cloudinary");
+          return { url, public_id };
         } catch (error) {
           console.log(error);
           // run up proper server logs
         }
       })
     );
-
     //create new product
     const product = await Product.create({
       name,

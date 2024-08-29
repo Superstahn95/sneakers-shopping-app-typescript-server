@@ -2,6 +2,7 @@ import express from "express";
 import upload from "../middlewares/multer";
 import { unlink } from "fs";
 import path from "path";
+import { parseAvailableSizes } from "../middlewares/parseAvailableSizes";
 import {
   createProductController,
   getProductContoller,
@@ -32,19 +33,12 @@ router.post("/check-image", upload.single("test"), (req, res, next) => {
 });
 router.post(
   "/create",
-  upload.fields([{ name: "coverImage" }, { name: "images" }])
+  upload.fields([{ name: "coverImage" }, { name: "images" }]),
+  parseAvailableSizes,
+  createProductController
 );
 
 router.get("/", getProductsController);
 router.get("/:id", getProductContoller);
 
 export default router;
-
-// const localFilePath = path.join(
-//     __dirname,
-//     "../..",
-//     "public",
-//     "upload",
-//     "meal",
-//     `${req.file?.filename}`
-//   );
